@@ -1,40 +1,28 @@
-import createServer from '@tomphttp/bare-server-node';
-import { fileURLToPath } from "url";
-import http from 'http';
-import serveStatic from "serve-static";
+export default {
+  async fetch(request, env, ctx) {
+    const { pathname, searchParams } = new URL(request.url)
 
-// The following message MAY NOT be removed
-console.log("Incognito\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder the terms of the GNU General Public License as published by\nthe Free Software Foundation, either version 3 of the License, or\n(at your option) any later version.\n\nYou should have received a copy of the GNU General Public License\nalong with this program. If not, see <https://www.gnu.org/licenses/>.\n")
+    if (pathname === "/") {
+      return new Response(`
+        <html>
+          <head><title>Prox</title></head>
+          <body style="text-align:center;">
+            <form method="GET" action="/search">
+              <input name="q" placeholder="Search with Prox" style="width:300px; padding:8px;">
+              <button type="submit">Search</button>
+            </form>
+          </body>
+        </html>`, {
+        headers: { "Content-Type": "text/html; charset=utf-8" }
+      })
+    }
 
-const port = process.env.PORT || 8080;
-const bare =  createServer('/bare/');
-const serve = serveStatic(fileURLToPath(new URL("./static/", import.meta.url)), { fallthrough: false });
-const server = http.createServer();
+    if (pathname === "/search") {
+      const q = searchParams.get("q")
+      const url = `https://www.google.com/search?q=${encodeURIComponent(q)}`
+      return Response.redirect(url, 302)
+    }
 
-server.on('request', (req, res) => {
-  if (bare.shouldRoute(req)) {
-  bare.routeRequest(req, res);
-} else {
-  serve(req, res, (err) => {
-    res.writeHead(err?.statusCode || 500, null, {
-      "Content-Type": "text/plain",
-    });
-    res.end(err?.stack);
-  });
+    return new Response("404 Not Found", { status: 404 })
+  }
 }
-});
-
-server.on('upgrade', (req, socket, head) => {
-if (bare.shouldRoute(req, socket, head)) {
-  bare.routeUpgrade(req, socket, head);
-} else {
-  socket.end();
-}
-});
-
-
-server.listen({
-	port: port,
-});
-
-console.log("Server running on port " + port)
