@@ -1,0 +1,9 @@
+name = "prox"
+type = "javascript"
+
+account_id = "YOUR_ACCOUNT_ID" # 自分のCloudflareアカウントIDに置き換え
+workers_dev = true
+compatibility_date = "2025-04-23"
+
+[build]
+upload.format = "modules"
